@@ -99,8 +99,9 @@ func (b *Bot) handleUpdate(update tgbotapi.Update) {
 
 //HandleMessageEvent function to analyze and save standups
 func (b *Bot) HandleMessageEvent(event tgbotapi.Update) error {
-	text := "New message!"
-	_, err := b.tgAPI.Send(tgbotapi.NewMessage(event.Message.Chat.ID, text))
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Got it!")
+	msg.ReplyToMessageID = event.Message.MessageID
+	_, err := b.tgAPI.Send(msg)
 	return err
 }
 
