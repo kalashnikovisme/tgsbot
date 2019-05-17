@@ -61,3 +61,9 @@ func (m *MySQL) DeleteStanduper(id int64) error {
 	_, err := m.conn.Exec("DELETE FROM `standupers` WHERE id=?", id)
 	return err
 }
+
+// DeleteGroupStandupers deletes Standuper entry from database
+func (m *MySQL) DeleteGroupStandupers(chatID int64) error {
+	_, err := m.conn.Exec("DELETE FROM `standupers` WHERE chat_id=?", chatID)
+	return err
+}

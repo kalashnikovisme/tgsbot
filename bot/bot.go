@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/maddevsio/tgstandupbot/config"
@@ -110,20 +111,54 @@ func (b *Bot) HandleMessageEvent(event tgbotapi.Update) error {
 		return fmt.Errorf("Message is not a standup")
 	}
 
-	//? need to save standup to the database
+	_, err := b.db.CreateStandup(&model.Standup{
+		MessageID: event.Message.MessageID,
+		Created:   time.Now().UTC(),
+		Modified:  time.Now().UTC(),
+		Username:  event.Message.From.UserName,
+		Text:      event.Message.Text,
+		ChatID:    event.Message.Chat.ID,
+	})
+
+	if err != nil {
+		return err
+	}
 
 	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Спасибо, стендап принят!")
 	msg.ReplyToMessageID = event.Message.MessageID
-	_, err := b.tgAPI.Send(msg)
+	_, err = b.tgAPI.Send(msg)
 	return err
 }
 
 //HandleChannelLeftEvent function to remove bot and standupers from channels
 func (b *Bot) HandleChannelLeftEvent(event tgbotapi.Update) error {
-	//? if bot was removed, Need to remove channel from db, and remove all standupers
-	//? from db as well.
-	//? othervise remove person from standupers if the person was one
+	member := event.Message.LeftChatMember
+	// if user is a bot
+	if member.UserName == b.tgAPI.Self.UserName {
+		group, err := b.db.FindGroup(event.Message.Chat.ID)
+		if err != nil {
+			return err
+		}
 
+		err = b.db.DeleteGroupStandupers(event.Message.Chat.ID)
+		if err != nil {
+			return err
+		}
+		err = b.db.DeleteGroup(group.ID)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	standuper, err := b.db.FindStanduper(member.UserName, event.Message.Chat.ID)
+	if err != nil {
+		return nil
+	}
+	err = b.db.DeleteStanduper(standuper.ID)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
