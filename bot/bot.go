@@ -6,6 +6,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/maddevsio/tgstandupbot/config"
+	"github.com/maddevsio/tgstandupbot/model"
 	"github.com/maddevsio/tgstandupbot/storage"
 	log "github.com/sirupsen/logrus"
 )
@@ -128,12 +129,30 @@ func (b *Bot) HandleChannelLeftEvent(event tgbotapi.Update) error {
 
 //HandleChannelJoinEvent function to add bot and standupers t0 channels
 func (b *Bot) HandleChannelJoinEvent(event tgbotapi.Update) error {
-	//? if bot was added, Need to add channel to db,
-	//? othervise greet person and send channel description to him or her
-
-	text := "Hello! Nice to meet you all! I am here to help you with standups :}"
-	_, err := b.tgAPI.Send(tgbotapi.NewMessage(event.Message.Chat.ID, text))
-	return err
+	for _, member := range *event.Message.NewChatMembers {
+		// if user is a bot
+		if member.UserName == b.tgAPI.Self.UserName {
+			// add group to DB with default standup time to 10:00
+			_, err := b.db.CreateGroup(&model.Group{
+				ChatID:          event.Message.Chat.ID,
+				Title:           event.Message.Chat.Title,
+				Description:     event.Message.Chat.Description,
+				StandupDeadline: "10:00",
+			})
+			if err != nil {
+				return err
+			}
+			// Send greeting message after success group save
+			text := "Hello! Nice to meet you all! I am here to help you with standups :}"
+			_, err = b.tgAPI.Send(tgbotapi.NewMessage(event.Message.Chat.ID, text))
+			return err
+		}
+		//if it is a regular user, greet with welcoming message
+		text := fmt.Sprintf("Hello, @%v! Welcome to %v!", member.UserName, event.Message.Chat.Title)
+		_, err := b.tgAPI.Send(tgbotapi.NewMessage(event.Message.Chat.ID, text))
+		return err
+	}
+	return nil
 }
 
 func isStandup(message string) bool {
