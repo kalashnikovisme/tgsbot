@@ -6,7 +6,7 @@ CREATE TABLE `standups` (
     `created` DATETIME NOT NULL,
     `modified` DATETIME NOT NULL,
     `username` VARCHAR(255) NOT NULL,
-    `comment` VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+    `text` VARCHAR(255) COLLATE utf8mb4_unicode_ci NOT NULL,
     `chat_id` BIGINT NOT NULL,
     KEY (`created`, `username`)
 );

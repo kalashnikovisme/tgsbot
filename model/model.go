@@ -26,6 +26,6 @@ type Standup struct {
 	Created   time.Time `db:"created" json:"created"`
 	Modified  time.Time `db:"modified" json:"modified"`
 	Username  string    `db:"username" json:"userName"`
-	Comment   string    `db:"comment" json:"comment"`
+	Text      string    `db:"text" json:"text"`
 	ChatID    int64     `db:"chat_id" json:"chat_id"`
 }
