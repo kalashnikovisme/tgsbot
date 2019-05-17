@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/maddevsio/tgstandupbot/bot"
-	"github.com/maddevsio/tgstandupbot/config"
+	"github.com/maddevsio/telegramStandupBot/bot"
+	"github.com/maddevsio/telegramStandupBot/config"
 )
 
 func main() {
