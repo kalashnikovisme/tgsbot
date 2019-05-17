@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"fmt"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -99,7 +100,16 @@ func (b *Bot) handleUpdate(update tgbotapi.Update) {
 
 //HandleMessageEvent function to analyze and save standups
 func (b *Bot) HandleMessageEvent(event tgbotapi.Update) error {
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Got it!")
+
+	if !strings.Contains(event.Message.Text, b.tgAPI.Self.UserName) {
+		return nil
+	}
+
+	if !isStandup(event.Message.Text) {
+		return fmt.Errorf("Message is not a standup")
+	}
+
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Спасибо, стендап принят!")
 	msg.ReplyToMessageID = event.Message.MessageID
 	_, err := b.tgAPI.Send(msg)
 	return err
