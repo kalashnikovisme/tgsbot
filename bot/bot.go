@@ -58,7 +58,8 @@ func New(c *config.BotConfig) (*Bot, error) {
 
 // Start bot
 func (b *Bot) Start() {
-	log.Info("Starting tg bot\n")
+	b.StartNotificationThreads()
+	log.Info("Listening for updates... \n")
 	for update := range b.updates {
 		b.handleUpdate(update)
 	}

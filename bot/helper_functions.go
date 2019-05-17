@@ -1,6 +1,11 @@
 package bot
 
-import "strings"
+import (
+	"strings"
+	"time"
+
+	"github.com/maddevsio/telegramStandupBot/model"
+)
 
 func isStandup(message string) bool {
 	message = strings.ToLower(message)
@@ -26,4 +31,15 @@ func isStandup(message string) bool {
 	}
 
 	return mentionsProblem && mentionsYesterdayWork && mentionsTodayPlans
+}
+
+func (b *Bot) submittedStandupToday(standuper *model.Standuper) bool {
+	standup, err := b.db.LastStandupFor(standuper.Username, standuper.ChatID)
+	if err != nil {
+		return false
+	}
+	if standup.Created.Day() == time.Now().Day() {
+		return true
+	}
+	return false
 }

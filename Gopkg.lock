@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:ee907e9ead8d8b090f1e2c07967ff1ec7ed20687c2ffd270d1c6c1b71dff5496"
+  name = "github.com/AlekSi/pointer"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "08a25bac605b3fcb6cc27f3917b2c2c87451963d"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:ec6f9bf5e274c833c911923c9193867f3f18788c461f76f05f62bb1510e0ae65"
   name = "github.com/go-sql-driver/mysql"
   packages = ["."]
@@ -45,6 +53,29 @@
   version = "v1.0.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:0870734581fede93c3c37bc8ce0437ad9d5aa1491713e9848b08ba9003e5ff7c"
+  name = "github.com/olebedev/when"
+  packages = [
+    ".",
+    "rules",
+    "rules/br",
+    "rules/common",
+    "rules/en",
+    "rules/ru",
+  ]
+  pruneopts = "UT"
+  revision = "c3b538a972545a9584eadaea351b97264f29e8a8"
+
+[[projects]]
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
+
+[[projects]]
   digest = "1:fd61cf4ae1953d55df708acb6b91492d538f49c305b364a014049914495db426"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
@@ -84,6 +115,9 @@
     "github.com/go-telegram-bot-api/telegram-bot-api",
     "github.com/jmoiron/sqlx",
     "github.com/kelseyhightower/envconfig",
+    "github.com/olebedev/when",
+    "github.com/olebedev/when/rules/en",
+    "github.com/olebedev/when/rules/ru",
     "github.com/sirupsen/logrus",
   ]
   solver-name = "gps-cdcl"
