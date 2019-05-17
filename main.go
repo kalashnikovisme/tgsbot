@@ -1,10 +1,9 @@
 package main
 
 import (
-	"log"
-
 	"github.com/maddevsio/telegramStandupBot/bot"
 	"github.com/maddevsio/telegramStandupBot/config"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
