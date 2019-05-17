@@ -109,6 +109,8 @@ func (b *Bot) HandleMessageEvent(event tgbotapi.Update) error {
 		return fmt.Errorf("Message is not a standup")
 	}
 
+	//? need to save standup to the database
+
 	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Спасибо, стендап принят!")
 	msg.ReplyToMessageID = event.Message.MessageID
 	_, err := b.tgAPI.Send(msg)
@@ -117,13 +119,18 @@ func (b *Bot) HandleMessageEvent(event tgbotapi.Update) error {
 
 //HandleChannelLeftEvent function to remove bot and standupers from channels
 func (b *Bot) HandleChannelLeftEvent(event tgbotapi.Update) error {
-	log.Info("Chat member left!\n")
+	//? if bot was removed, Need to remove channel from db, and remove all standupers
+	//? from db as well.
+	//? othervise remove person from standupers if the person was one
+
 	return nil
 }
 
 //HandleChannelJoinEvent function to add bot and standupers t0 channels
 func (b *Bot) HandleChannelJoinEvent(event tgbotapi.Update) error {
-	log.Info("Chat member joined!\n")
+	//? if bot was added, Need to add channel to db,
+	//? othervise greet person and send channel description to him or her
+
 	text := "Hello! Nice to meet you all! I am here to help you with standups :}"
 	_, err := b.tgAPI.Send(tgbotapi.NewMessage(event.Message.Chat.ID, text))
 	return err

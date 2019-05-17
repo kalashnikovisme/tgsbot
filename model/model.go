@@ -13,17 +13,19 @@ type Group struct {
 
 // Standuper rerpesents standuper
 type Standuper struct {
-	ID       int64  `db:"id"`
-	Username string `db:"username"`
-	ChatID   int64  `db:"chat_id" json:"chat_id"`
+	ID           int64  `db:"id"`
+	Username     string `db:"username" json:"username"`
+	ChatID       int64  `db:"chat_id" json:"chat_id"`
+	LanguageCode string `db:"language_code" json:"language_code"`
 }
 
 // Standup model used for serialization/deserialization stored standups
 type Standup struct {
-	ID       int64     `db:"id" json:"id"`
-	Created  time.Time `db:"created" json:"created"`
-	Modified time.Time `db:"modified" json:"modified"`
-	Username string    `db:"username" json:"userName"`
-	Comment  string    `db:"comment" json:"comment"`
-	ChatID   int64     `db:"chat_id" json:"chat_id"`
+	ID        int64     `db:"id" json:"id"`
+	MessageID int       `db:"message_id" json:"message_id"`
+	Created   time.Time `db:"created" json:"created"`
+	Modified  time.Time `db:"modified" json:"modified"`
+	Username  string    `db:"username" json:"userName"`
+	Comment   string    `db:"comment" json:"comment"`
+	ChatID    int64     `db:"chat_id" json:"chat_id"`
 }
