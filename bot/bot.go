@@ -1,14 +1,12 @@
 package bot
 
 import (
-	"fmt"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/maddevsio/tgstandupbot/config"
-	"github.com/maddevsio/tgstandupbot/model"
 	"github.com/maddevsio/tgstandupbot/storage"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -23,34 +21,46 @@ type Bot struct {
 	db      *storage.MySQL
 }
 
+var yesterdayWorkKeywords = []string{"вчера"}
+var todayPlansKeywords = []string{"сегодня"}
+var issuesKeywords = []string{"мешает"}
+
 // New creates a new bot instance
 func New(c *config.BotConfig) (*Bot, error) {
 	newBot, err := tgbotapi.NewBotAPI(c.TelegramToken)
 	if err != nil {
 		return nil, err
 	}
-	b := &Bot{
-		c:     c,
-		tgAPI: newBot,
-	}
+
+	newBot.Debug = false
+
 	u := tgbotapi.NewUpdate(0)
+
 	u.Timeout = telegramAPIUpdateInterval
-	updates, err := b.tgAPI.GetUpdatesChan(u)
+
+	updates, err := newBot.GetUpdatesChan(u)
 	if err != nil {
 		return nil, err
 	}
+
 	conn, err := storage.NewMySQL(c)
 	if err != nil {
 		return nil, err
 	}
-	b.updates = updates
-	b.db = conn
+
+	b := &Bot{
+		c:       c,
+		tgAPI:   newBot,
+		updates: updates,
+		db:      conn,
+	}
+
 	return b, nil
 }
 
-// Start ...
+// Start bot
 func (b *Bot) Start() {
-	logrus.Info("Starting tg bot\n")
+	log.Info("Starting tg bot\n")
 	for update := range b.updates {
 		b.handleUpdate(update)
 	}
@@ -58,68 +68,48 @@ func (b *Bot) Start() {
 
 func (b *Bot) handleUpdate(update tgbotapi.Update) {
 
-	text := update.Message.Text
-	if !strings.Contains(text, "@"+b.tgAPI.Self.UserName) {
-		return
+	if update.Message.Text != "" {
+		log.Info("The event contains text!\n")
 	}
 
-	chatID := update.Message.Chat.ID
+	if update.Message.LeftChatMember != nil {
+		log.Info("Chat member left channel!\n")
+	}
 
-	if isStandup(update.Message.Text) {
-		standup := &model.Standup{
-			Comment:  update.Message.Text,
-			Username: update.Message.From.UserName,
-		}
-		_, err := b.db.CreateStandup(standup)
-		if err != nil {
-			logrus.Errorf("CreateStandup failed: %v\n", err)
-			b.tgAPI.Send(tgbotapi.NewMessage(chatID, fmt.Sprintf("@%s у тебя кажется норм стендап, но сохранять его не буду.", update.Message.From.UserName)))
-			return
-		}
-		b.tgAPI.Send(tgbotapi.NewMessage(chatID, fmt.Sprintf("@%s спасибо. Я принял твой стендап", update.Message.From.UserName)))
+	if update.Message.NewChatMembers != nil {
+		log.Info("Chat member joined!\n")
 	}
-}
 
-func (b *Bot) senderIsAdminInChannel(sendername string, chatID int64) (bool, error) {
-	chat := tgbotapi.ChatConfig{
-		ChatID:             chatID,
-		SuperGroupUsername: "",
-	}
-	admins, err := b.tgAPI.GetChatAdministrators(chat)
-	if err != nil {
-		return false, err
-	}
-	for _, admin := range admins {
-		if admin.User.UserName == sendername {
-			return true, nil
-		}
-	}
-	return false, nil
+	//? need to handle user change username
+	//? need to handle slash commands
+	/*
+		? assign/view/unassign users to standup
+		? set/view/remove standup deadline
+	*/
 }
 
 func isStandup(message string) bool {
-	logrus.Info("checking message...\n")
-	var mentionsProblem, mentionsYesterdayWork, mentionsTodayPlans bool
+	message = strings.ToLower(message)
 
-	problemKeys := []string{"роблем", "рудност", "атруднен", "блок"}
-	for _, problem := range problemKeys {
-		if strings.Contains(message, problem) {
-			mentionsProblem = true
-		}
-	}
+	var mentionsYesterdayWork, mentionsTodayPlans, mentionsProblem bool
 
-	yesterdayWorkKeys := []string{"чера", "ятницу", "делал", "делано"}
-	for _, work := range yesterdayWorkKeys {
+	for _, work := range yesterdayWorkKeywords {
 		if strings.Contains(message, work) {
 			mentionsYesterdayWork = true
 		}
 	}
 
-	todayPlansKeys := []string{"егодн", "обираюс", "ланир"}
-	for _, plan := range todayPlansKeys {
+	for _, plan := range todayPlansKeywords {
 		if strings.Contains(message, plan) {
 			mentionsTodayPlans = true
 		}
 	}
+
+	for _, problem := range issuesKeywords {
+		if strings.Contains(message, problem) {
+			mentionsProblem = true
+		}
+	}
+
 	return mentionsProblem && mentionsYesterdayWork && mentionsTodayPlans
 }
