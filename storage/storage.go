@@ -31,7 +31,7 @@ func NewMySQL(c *config.BotConfig) (*MySQL, error) {
 func (m *MySQL) CreateStandup(s *model.Standup) (*model.Standup, error) {
 	res, err := m.conn.Exec(
 		"INSERT INTO `standups` (created, modified, username, comment, groupid) VALUES (?, ?, ?, ?, ?)",
-		time.Now().UTC(), time.Now().UTC(), s.Username, s.Comment, s.GroupID,
+		time.Now().UTC(), time.Now().UTC(), s.Username, s.Comment, s.ChatID,
 	)
 	if err != nil {
 		return s, err
@@ -86,7 +86,7 @@ func (m *MySQL) LastStandupFor(username string, groupID int64) (*model.Standup, 
 func (m *MySQL) CreateStanduper(s *model.Standuper) (*model.Standuper, error) {
 	res, err := m.conn.Exec(
 		"INSERT INTO `standupers` (username, groupid) VALUES (?, ?)",
-		s.Username, s.GroupID,
+		s.Username, s.ChatID,
 	)
 	if err != nil {
 		return nil, err

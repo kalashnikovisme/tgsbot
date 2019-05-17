@@ -69,15 +69,24 @@ func (b *Bot) Start() {
 func (b *Bot) handleUpdate(update tgbotapi.Update) {
 
 	if update.Message.Text != "" {
-		log.Info("The event contains text!\n")
+		err := b.HandleMessageEvent(update)
+		if err != nil {
+			log.Error("Failed to Handle Message Event! ", err)
+		}
 	}
 
 	if update.Message.LeftChatMember != nil {
-		log.Info("Chat member left channel!\n")
+		err := b.HandleChannelLeftEvent(update)
+		if err != nil {
+			log.Error("Failed to Handle Channel left Event! ", err)
+		}
 	}
 
 	if update.Message.NewChatMembers != nil {
-		log.Info("Chat member joined!\n")
+		err := b.HandleChannelJoinEvent(update)
+		if err != nil {
+			log.Error("Failed to Handle Channel Join Event! ", err)
+		}
 	}
 
 	//? need to handle user change username
@@ -86,6 +95,27 @@ func (b *Bot) handleUpdate(update tgbotapi.Update) {
 		? assign/view/unassign users to standup
 		? set/view/remove standup deadline
 	*/
+}
+
+//HandleMessageEvent function to analyze and save standups
+func (b *Bot) HandleMessageEvent(event tgbotapi.Update) error {
+	text := "New message!"
+	_, err := b.tgAPI.Send(tgbotapi.NewMessage(event.Message.Chat.ID, text))
+	return err
+}
+
+//HandleChannelLeftEvent function to remove bot and standupers from channels
+func (b *Bot) HandleChannelLeftEvent(event tgbotapi.Update) error {
+	log.Info("Chat member left!\n")
+	return nil
+}
+
+//HandleChannelJoinEvent function to add bot and standupers t0 channels
+func (b *Bot) HandleChannelJoinEvent(event tgbotapi.Update) error {
+	log.Info("Chat member joined!\n")
+	text := "Hello! Nice to meet you all! I am here to help you with standups :}"
+	_, err := b.tgAPI.Send(tgbotapi.NewMessage(event.Message.Chat.ID, text))
+	return err
 }
 
 func isStandup(message string) bool {
