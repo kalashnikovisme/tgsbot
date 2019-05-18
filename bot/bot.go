@@ -61,6 +61,9 @@ func (b *Bot) Start() {
 	b.StartNotificationThreads()
 	log.Info("Listening for updates... \n")
 	for update := range b.updates {
-		b.handleUpdate(update)
+		err := b.handleUpdate(update)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 }

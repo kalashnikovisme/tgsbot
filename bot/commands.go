@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/maddevsio/telegramStandupBot/model"
 )
 
 //HandleCommand handles imcomming commands
@@ -40,8 +41,51 @@ func (b *Bot) Help(event tgbotapi.Update) error {
 
 //Add assign user a standuper role
 func (b *Bot) Add(event tgbotapi.Update) error {
+	added := []string{}
+	exist := []string{}
+	failed := []string{}
 
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Adding...")
+	toAdd := event.Message.CommandArguments()
+	users := strings.Split(toAdd, " ")
+	for _, user := range users {
+		_, err := b.db.FindStanduper(user[1:], event.Message.Chat.ID) // user[1:] to remove leading @
+		if err == nil {
+			exist = append(exist, user)
+			continue
+		}
+		chatMember, err := b.tgAPI.GetChatMember(tgbotapi.ChatConfigWithUser{
+			ChatID:             event.Message.Chat.ID,
+			SuperGroupUsername: user[1:],
+		})
+		if err != nil {
+			failed = append(failed, user)
+			continue
+		}
+		_, err = b.db.CreateStanduper(&model.Standuper{
+			Username:     chatMember.User.UserName,
+			ChatID:       event.Message.Chat.ID,
+			LanguageCode: chatMember.User.LanguageCode,
+		})
+		if err != nil {
+			failed = append(failed, user)
+			continue
+		}
+		added = append(added, user)
+	}
+
+	var message string
+
+	if len(added) > 0 {
+		message += fmt.Sprintf("Users assigned to standup: %v. ", strings.Join(added, ", "))
+	}
+	if len(failed) > 0 {
+		message += fmt.Sprintf("Failed to assign: %v. ", strings.Join(failed, ", "))
+	}
+	if len(exist) > 0 {
+		message += fmt.Sprintf("Already standupers: %v. ", strings.Join(exist, ", "))
+	}
+
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, message)
 	_, err := b.tgAPI.Send(msg)
 	return err
 }

@@ -7,45 +7,28 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/maddevsio/telegramStandupBot/model"
-	log "github.com/sirupsen/logrus"
 )
 
-func (b *Bot) handleUpdate(update tgbotapi.Update) {
+func (b *Bot) handleUpdate(update tgbotapi.Update) error {
 
 	if update.Message.IsCommand() {
-		err := b.HandleCommand(update)
-		if err != nil {
-			log.Error("Failed to Handle Command ", err)
-		}
+		return b.HandleCommand(update)
 	}
 
 	if update.Message.Text != "" {
-		err := b.HandleMessageEvent(update)
-		if err != nil {
-			log.Error("Failed to Handle Message Event! ", err)
-		}
+		return b.HandleMessageEvent(update)
 	}
 
 	if update.Message.LeftChatMember != nil {
-		err := b.HandleChannelLeftEvent(update)
-		if err != nil {
-			log.Error("Failed to Handle Channel left Event! ", err)
-		}
+		return b.HandleChannelLeftEvent(update)
 	}
 
 	if update.Message.NewChatMembers != nil {
-		err := b.HandleChannelJoinEvent(update)
-		if err != nil {
-			log.Error("Failed to Handle Channel Join Event! ", err)
-		}
+		return b.HandleChannelJoinEvent(update)
 	}
 
 	//? need to handle user change username
-	//? need to handle slash commands
-	/*
-		? assign/view/unassign users to standup
-		? set/view/remove standup deadline
-	*/
+	return nil
 }
 
 //HandleMessageEvent function to analyze and save standups
