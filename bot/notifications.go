@@ -34,6 +34,7 @@ func (b *Bot) trackStandupersIn(team *model.Team) {
 		case <-ticker:
 			b.NotifyGroup(team.Group, time.Now())
 		case <-team.QuitChan:
+			log.Info("Finish working with the group: ", team.QuitChan)
 			b.wg.Done()
 			break
 		}
@@ -64,26 +65,35 @@ func (b *Bot) NotifyGroup(group *model.Group, t time.Time) {
 		log.Infof("Could not find matches. Channel standup time: [%v]", group.StandupDeadline)
 		return
 	}
-	if !(t.Hour() == r.Time.Hour() && t.Minute() == r.Time.Minute()) {
-		return
-	}
-	standupers, err := b.db.ListChatStandupers(group.ChatID)
-	if err != nil {
-		log.Error(err)
-		return
-	}
 
-	missed := []string{}
-
-	for _, standuper := range standupers {
-		if !b.submittedStandupToday(standuper) {
-			missed = append(missed, "@"+standuper.Username)
+	if t.Hour() == r.Time.Hour() && t.Minute() == r.Time.Minute() {
+		standupers, err := b.db.ListChatStandupers(group.ChatID)
+		if err != nil {
+			log.Error(err)
+			return
 		}
-	}
 
-	msg := tgbotapi.NewMessage(group.ChatID, fmt.Sprintf("@%v, you have missed deadline, please, submit standup ASAP!", strings.Join(missed, ", ")))
-	_, err = b.tgAPI.Send(msg)
-	if err != nil {
-		log.Error(err)
+		missed := []string{}
+
+		for _, standuper := range standupers {
+			if !b.submittedStandupToday(standuper) {
+				missed = append(missed, "@"+standuper.Username)
+			}
+		}
+
+		if len(missed) == 0 {
+			msg := tgbotapi.NewMessage(group.ChatID, "Nice job, all standups submitted!")
+			_, err = b.tgAPI.Send(msg)
+			if err != nil {
+				log.Error(err)
+			}
+			return
+		}
+
+		msg := tgbotapi.NewMessage(group.ChatID, fmt.Sprintf("Attention! Missed deadline: %v. Please, submit standups ASAP!", strings.Join(missed, ", ")))
+		_, err = b.tgAPI.Send(msg)
+		if err != nil {
+			log.Error(err)
+		}
 	}
 }

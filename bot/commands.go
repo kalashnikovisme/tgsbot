@@ -145,15 +145,15 @@ func (b *Bot) LeaveStandupers(event tgbotapi.Update) error {
 func (b *Bot) EditDeadline(event tgbotapi.Update) error {
 	deadline := event.Message.CommandArguments()
 
-	group, err := b.db.FindGroup(event.Message.Chat.ID)
-	if err != nil {
+	team := b.findTeam(event.Message.Chat.ID)
+	if team == nil {
 		//! Need to create the group here... this might happen
 		//! if the bot was added to the group when being inactive
 	}
 
-	group.StandupDeadline = deadline
+	team.Group.StandupDeadline = deadline
 
-	_, err = b.db.UpdateGroup(group)
+	_, err := b.db.UpdateGroup(team.Group)
 	if err != nil {
 		log.Error("UpdateGroup in EditDeadline failed: ", err)
 		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Could not update deadline")
@@ -191,15 +191,15 @@ func (b *Bot) ShowDeadline(event tgbotapi.Update) error {
 
 //RemoveDeadline sets standup deadline to empty string
 func (b *Bot) RemoveDeadline(event tgbotapi.Update) error {
-	group, err := b.db.FindGroup(event.Message.Chat.ID)
-	if err != nil {
+	team := b.findTeam(event.Message.Chat.ID)
+	if team == nil {
 		//! Need to create the group here... this might happen
 		//! if the bot was added to the group when being inactive
 	}
 
-	group.StandupDeadline = ""
+	team.Group.StandupDeadline = ""
 
-	_, err = b.db.UpdateGroup(group)
+	_, err := b.db.UpdateGroup(team.Group)
 	if err != nil {
 		log.Error("UpdateGroup in RemoveDeadline failed: ", err)
 		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Could not remove deadline")
