@@ -30,7 +30,7 @@ func New(c *config.BotConfig) (*Bot, error) {
 		return nil, err
 	}
 
-	newBot.Debug = false
+	newBot.Debug = c.Debug
 
 	u := tgbotapi.NewUpdate(0)
 
