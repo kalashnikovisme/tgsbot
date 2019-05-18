@@ -1,14 +1,16 @@
 # Simple Standup Bot for Telegram
 Bot helps to conduct daily standup meetings
 
-## Awailable commands
+## Available commands
+```
 /help - Display list of available commands
 /join - Adds you to standup team of the group
 /show - Shows who submit standups
 /leave - Removes you from standup team of the group
 /edit_deadline - Sets new standup deadline (you can use 10am format or 15:30 format)
-/show_deadline - Shows current standup deadline 
+/show_deadline - Shows current standup deadline
 /remove_deadline - Removes standup deadline at all
+```
 
 ## Local usage
 First you need to set env variables:
