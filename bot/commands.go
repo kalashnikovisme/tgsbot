@@ -64,7 +64,7 @@ func (b *Bot) Show(event tgbotapi.Update) error {
 		list = append(list, "@"+standuper.Username)
 	}
 
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Standupers in the group: ", strings.Join(list, ", ")))
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Standupers in the group: %v", strings.Join(list, ", ")))
 	_, err = b.tgAPI.Send(msg)
 	return err
 }
