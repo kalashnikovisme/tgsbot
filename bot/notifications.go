@@ -24,6 +24,7 @@ func (b *Bot) StartWatchers() {
 		b.teams = append(b.teams, team)
 		b.wg.Add(1)
 		go b.trackStandupersIn(team)
+		b.wg.Done()
 	}
 }
 
@@ -35,8 +36,7 @@ func (b *Bot) trackStandupersIn(team *model.Team) {
 			b.NotifyGroup(team.Group, time.Now())
 		case <-team.QuitChan:
 			log.Info("Finish working with the group: ", team.QuitChan)
-			b.wg.Done()
-			break
+			return
 		}
 	}
 }

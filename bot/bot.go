@@ -89,6 +89,8 @@ func (b *Bot) Start() error {
 		}
 	}
 
+	b.wg.Wait()
+
 	return nil
 }
 
