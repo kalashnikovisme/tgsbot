@@ -2,7 +2,6 @@ FROM golang:1.11.4
 COPY . /go/src/github.com/maddevsio/telegramStandupBot/
 WORKDIR /go/src/github.com/maddevsio/telegramStandupBot
 RUN GOOS=linux GOARCH=amd64 go build -o tgbot main.go
-RUN go get -u github.com/pressly/goose/cmd/goose
 
 FROM debian:9.8
 LABEL maintainer="Anatoliy Fedorenko <fedorenko.tolik@gmail.com>"
@@ -14,7 +13,7 @@ ENV LANG en_US.utf8
 
 COPY --from=0 /go/src/github.com/maddevsio/telegramStandupBot/tgbot /
 COPY --from=0 /go/src/github.com/maddevsio/telegramStandupBot/migrations /migrations
-COPY --from=0 /go/bin/goose /
+COPY --from=0 /go/src/github.com/maddevsio/telegramStandupBot/goose /
 COPY entrypoint.sh /
 
 ENTRYPOINT ["/entrypoint.sh"]
