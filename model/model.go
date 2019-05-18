@@ -9,6 +9,7 @@ type Group struct {
 	Title           string `db:"title" json:"title"`
 	Description     string `db:"description" json:"description,omitempty"`
 	StandupDeadline string `db:"standup_deadline" json:"standup_deadline,omitempty"`
+	TZ              string `db:"tz" json:"tz"`
 }
 
 //Team is a helper struct to watch after different channels deadlines

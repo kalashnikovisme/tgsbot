@@ -109,6 +109,7 @@ func (b *Bot) HandleChannelJoinEvent(event tgbotapi.Update) error {
 					Title:           event.Message.Chat.Title,
 					Description:     event.Message.Chat.Description,
 					StandupDeadline: "10:00",
+					TZ:              "Asia/Bishkek", // default value...
 				})
 				if err != nil {
 					return err
@@ -117,7 +118,7 @@ func (b *Bot) HandleChannelJoinEvent(event tgbotapi.Update) error {
 				b.watchersChan <- group
 			}
 			// Send greeting message after success group save
-			text := "Hello! Nice to meet you all! I am here to help you with standups :}"
+			text := "Hello! Nice to meet you all! I am here to help you with standups :)"
 			_, err = b.tgAPI.Send(tgbotapi.NewMessage(event.Message.Chat.ID, text))
 			return err
 		}

@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/maddevsio/tgsbot/model"
@@ -26,6 +27,8 @@ func (b *Bot) HandleCommand(event tgbotapi.Update) error {
 		return b.ShowDeadline(event)
 	case "remove_deadline":
 		return b.RemoveDeadline(event)
+	case "tz":
+		return b.ChangeTimeZone(event)
 	default:
 		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "I do not know this command...")
 		_, err := b.tgAPI.Send(msg)
@@ -43,6 +46,7 @@ func (b *Bot) Help(event tgbotapi.Update) error {
 	/edit_deadline - Sets new standup deadline (you can use 10am format or 15:30 format)
 	/show_deadline - Shows current standup deadline 
 	/remove_deadline - Removes standup deadline at all
+	/tz - Changes Time Zone for your channel (ex: Asia/Bishkek)
 
 	Looking forward for your standups!
 	`
@@ -81,6 +85,7 @@ func (b *Bot) JoinStandupers(event tgbotapi.Update) error {
 			Title:           event.Message.Chat.Title,
 			Description:     event.Message.Chat.Description,
 			StandupDeadline: "10:00",
+			TZ:              "Asia/Bishkek", // default value...
 		})
 		if err != nil {
 			return err
@@ -159,6 +164,7 @@ func (b *Bot) EditDeadline(event tgbotapi.Update) error {
 			Title:           event.Message.Chat.Title,
 			Description:     event.Message.Chat.Description,
 			StandupDeadline: "10:00",
+			TZ:              "Asia/Bishkek", // default value...
 		})
 		if err != nil {
 			return err
@@ -193,6 +199,7 @@ func (b *Bot) ShowDeadline(event tgbotapi.Update) error {
 			Title:           event.Message.Chat.Title,
 			Description:     event.Message.Chat.Description,
 			StandupDeadline: "10:00",
+			TZ:              "Asia/Bishkek", // default value...
 		})
 		if err != nil {
 			return err
@@ -221,6 +228,7 @@ func (b *Bot) RemoveDeadline(event tgbotapi.Update) error {
 			Title:           event.Message.Chat.Title,
 			Description:     event.Message.Chat.Description,
 			StandupDeadline: "10:00",
+			TZ:              "Asia/Bishkek", // default value...
 		})
 		if err != nil {
 			return err
@@ -241,6 +249,52 @@ func (b *Bot) RemoveDeadline(event tgbotapi.Update) error {
 	}
 
 	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Deadline removed!")
+	msg.ReplyToMessageID = event.Message.MessageID
+	_, err = b.tgAPI.Send(msg)
+	return err
+}
+
+//ChangeTimeZone modifies time zone of the group
+func (b *Bot) ChangeTimeZone(event tgbotapi.Update) error {
+	tz := event.Message.CommandArguments()
+
+	team := b.findTeam(event.Message.Chat.ID)
+	if team == nil {
+		group, err := b.db.CreateGroup(&model.Group{
+			ChatID:          event.Message.Chat.ID,
+			Title:           event.Message.Chat.Title,
+			Description:     event.Message.Chat.Description,
+			StandupDeadline: "10:00",
+			TZ:              "Asia/Bishkek", // default value...
+		})
+		if err != nil {
+			return err
+		}
+		b.watchersChan <- group
+		team = b.findTeam(event.Message.Chat.ID)
+	}
+
+	team.Group.TZ = tz
+
+	_, err := time.LoadLocation(tz)
+	if err != nil {
+		log.Error("UpdateGroup in ChangeTimeZone failed: ", err)
+		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Could not Change Time Zone, please, check your TZ name and try again")
+		msg.ReplyToMessageID = event.Message.MessageID
+		_, err = b.tgAPI.Send(msg)
+		return err
+	}
+
+	_, err = b.db.UpdateGroup(team.Group)
+	if err != nil {
+		log.Error("UpdateGroup in ChangeTimeZone failed: ", err)
+		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Could not ChangeTimeZone")
+		msg.ReplyToMessageID = event.Message.MessageID
+		_, err = b.tgAPI.Send(msg)
+		return err
+	}
+
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Time Zone updated! New TZ is %s", tz))
 	msg.ReplyToMessageID = event.Message.MessageID
 	_, err = b.tgAPI.Send(msg)
 	return err

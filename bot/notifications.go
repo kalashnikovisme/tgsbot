@@ -33,7 +33,13 @@ func (b *Bot) trackStandupersIn(team *model.Team) {
 	for {
 		select {
 		case <-ticker:
-			b.NotifyGroup(team.Group, time.Now())
+			loc, err := time.LoadLocation(team.Group.TZ)
+			if err != nil {
+				log.Error("LoadLocation failed! ", team)
+				b.NotifyGroup(team.Group, time.Now().UTC())
+				continue
+			}
+			b.NotifyGroup(team.Group, time.Now().In(loc))
 		case <-team.QuitChan:
 			log.Info("Finish working with the group: ", team.QuitChan)
 			return

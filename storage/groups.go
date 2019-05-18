@@ -9,8 +9,8 @@ import (
 // CreateGroup creates Group
 func (m *MySQL) CreateGroup(group *model.Group) (*model.Group, error) {
 	res, err := m.conn.Exec(
-		"INSERT INTO `groups` (chat_id, title, description, standup_deadline) VALUES (?, ?, ?, ?)",
-		group.ChatID, group.Title, group.Description, group.StandupDeadline,
+		"INSERT INTO `groups` (chat_id, title, description, standup_deadline, tz) VALUES (?, ?, ?, ?, ?)",
+		group.ChatID, group.Title, group.Description, group.StandupDeadline, group.TZ,
 	)
 	if err != nil {
 		return nil, err
@@ -26,8 +26,8 @@ func (m *MySQL) CreateGroup(group *model.Group) (*model.Group, error) {
 // UpdateGroup updates Group entry in database
 func (m *MySQL) UpdateGroup(group *model.Group) (*model.Group, error) {
 	m.conn.Exec(
-		"UPDATE `groups` SET title=?, description=?, standup_deadline=? WHERE id=?",
-		group.Title, group.Description, group.StandupDeadline, group.ID,
+		"UPDATE `groups` SET title=?, description=?, standup_deadline=?, tz=? WHERE id=?",
+		group.Title, group.Description, group.StandupDeadline, group.TZ, group.ID,
 	)
 	err := m.conn.Get(group, "SELECT * FROM `groups` WHERE id=?", group.ID)
 	return group, err
