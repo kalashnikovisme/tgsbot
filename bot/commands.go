@@ -13,12 +13,12 @@ func (b *Bot) HandleCommand(event tgbotapi.Update) error {
 	switch event.Message.Command() {
 	case "help":
 		return b.Help(event)
-	case "add":
-		return b.Add(event)
+	case "join_standupers":
+		return b.JoinStandupers(event)
 	case "show":
 		return b.Show(event)
-	case "remove":
-		return b.Remove(event)
+	case "leave_standupers":
+		return b.LeaveStandupers(event)
 	case "edit_deadline":
 		return b.EditDeadline(event)
 	case "show_deadline":
@@ -39,54 +39,44 @@ func (b *Bot) Help(event tgbotapi.Update) error {
 	return err
 }
 
-//Add assign user a standuper role
-func (b *Bot) Add(event tgbotapi.Update) error {
-	added := []string{}
-	exist := []string{}
-	failed := []string{}
-
-	toAdd := event.Message.CommandArguments()
-	users := strings.Split(toAdd, " ")
-	for _, user := range users {
-		_, err := b.db.FindStanduper(user[1:], event.Message.Chat.ID) // user[1:] to remove leading @
-		if err == nil {
-			exist = append(exist, user)
-			continue
-		}
-		chatMember, err := b.tgAPI.GetChatMember(tgbotapi.ChatConfigWithUser{
-			ChatID:             event.Message.Chat.ID,
-			SuperGroupUsername: user[1:],
-		})
-		if err != nil {
-			failed = append(failed, user)
-			continue
-		}
-		_, err = b.db.CreateStanduper(&model.Standuper{
-			Username:     chatMember.User.UserName,
-			ChatID:       event.Message.Chat.ID,
-			LanguageCode: chatMember.User.LanguageCode,
-		})
-		if err != nil {
-			failed = append(failed, user)
-			continue
-		}
-		added = append(added, user)
+//JoinStandupers assign user a standuper role
+func (b *Bot) JoinStandupers(event tgbotapi.Update) error {
+	_, err := b.db.FindStanduper(event.Message.From.UserName, event.Message.Chat.ID) // user[1:] to remove leading @
+	if err == nil {
+		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "You are already in the standup team!")
+		msg.ReplyToMessageID = event.Message.MessageID
+		_, err := b.tgAPI.Send(msg)
+		return err
 	}
 
-	var message string
+	_, err = b.db.CreateStanduper(&model.Standuper{
+		Username:     event.Message.From.UserName,
+		ChatID:       event.Message.Chat.ID,
+		LanguageCode: event.Message.From.LanguageCode,
+	})
+	if err != nil {
+		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Could not add you to standup team")
+		msg.ReplyToMessageID = event.Message.MessageID
+		_, err := b.tgAPI.Send(msg)
+		return err
+	}
 
-	if len(added) > 0 {
-		message += fmt.Sprintf("Users assigned to standup: %v. ", strings.Join(added, ", "))
-	}
-	if len(failed) > 0 {
-		message += fmt.Sprintf("Failed to assign: %v. ", strings.Join(failed, ", "))
-	}
-	if len(exist) > 0 {
-		message += fmt.Sprintf("Already standupers: %v. ", strings.Join(exist, ", "))
+	group, err := b.db.FindGroup(event.Message.Chat.ID)
+	if err != nil {
+		//! Need to create the group here... this might happen
+		//! if the bot was added to the group when being inactive
 	}
 
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, message)
-	_, err := b.tgAPI.Send(msg)
+	var msg tgbotapi.MessageConfig
+
+	if group.StandupDeadline == "" {
+		msg = tgbotapi.NewMessage(event.Message.Chat.ID, "Welcome to standup team! No deadlines for standup submittions in the team yet!")
+	} else {
+		msg = tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Welcome to standup team! Please submit your standups till %s each day exept weekends!", group.StandupDeadline))
+	}
+
+	msg.ReplyToMessageID = event.Message.MessageID
+	_, err = b.tgAPI.Send(msg)
 	return err
 }
 
@@ -113,8 +103,8 @@ func (b *Bot) Show(event tgbotapi.Update) error {
 	return err
 }
 
-//Remove standupers
-func (b *Bot) Remove(event tgbotapi.Update) error {
+//LeaveStandupers standupers
+func (b *Bot) LeaveStandupers(event tgbotapi.Update) error {
 	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Removing...")
 	_, err := b.tgAPI.Send(msg)
 	return err
