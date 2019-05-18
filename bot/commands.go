@@ -35,7 +35,18 @@ func (b *Bot) HandleCommand(event tgbotapi.Update) error {
 
 //Help displays help message
 func (b *Bot) Help(event tgbotapi.Update) error {
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "I am here to help")
+	text := ` Here is the list of available commands:
+	/help - Display list of available commands
+	/join - Adds you to standup team of the group
+	/show - Shows who submit standups
+	/leave - Removes you from standup team of the group
+	/edit_deadline - Sets new standup deadline (you can use 10am format or 15:30 format)
+	/show_deadline - Shows current standup deadline 
+	/remove_deadline - Removes standup deadline at all
+
+	Looking forward for your standups!
+	`
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, text)
 	_, err := b.tgAPI.Send(msg)
 	return err
 }
