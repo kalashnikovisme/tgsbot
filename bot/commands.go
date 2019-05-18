@@ -6,6 +6,7 @@ import (
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/maddevsio/telegramStandupBot/model"
+	log "github.com/sirupsen/logrus"
 )
 
 //HandleCommand handles imcomming commands
@@ -13,11 +14,11 @@ func (b *Bot) HandleCommand(event tgbotapi.Update) error {
 	switch event.Message.Command() {
 	case "help":
 		return b.Help(event)
-	case "join_standupers":
+	case "join":
 		return b.JoinStandupers(event)
 	case "show":
 		return b.Show(event)
-	case "leave_standupers":
+	case "leave":
 		return b.LeaveStandupers(event)
 	case "edit_deadline":
 		return b.EditDeadline(event)
@@ -55,6 +56,7 @@ func (b *Bot) JoinStandupers(event tgbotapi.Update) error {
 		LanguageCode: event.Message.From.LanguageCode,
 	})
 	if err != nil {
+		log.Error("CreateStanduper failed: ", err)
 		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Could not add you to standup team")
 		msg.ReplyToMessageID = event.Message.MessageID
 		_, err := b.tgAPI.Send(msg)
@@ -105,28 +107,98 @@ func (b *Bot) Show(event tgbotapi.Update) error {
 
 //LeaveStandupers standupers
 func (b *Bot) LeaveStandupers(event tgbotapi.Update) error {
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Removing...")
-	_, err := b.tgAPI.Send(msg)
+	standuper, err := b.db.FindStanduper(event.Message.From.UserName, event.Message.Chat.ID) // user[1:] to remove leading @
+	if err != nil {
+		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "You are not in the standup team yet!")
+		msg.ReplyToMessageID = event.Message.MessageID
+		_, err := b.tgAPI.Send(msg)
+		return err
+	}
+
+	err = b.db.DeleteStanduper(standuper.ID)
+	if err != nil {
+		log.Error("DeleteStanduper failed: ", err)
+		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Could not remove you from standup team")
+		msg.ReplyToMessageID = event.Message.MessageID
+		_, err := b.tgAPI.Send(msg)
+		return err
+	}
+
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "You are no longer in stanup team, thank you for all your standups!")
+	msg.ReplyToMessageID = event.Message.MessageID
+	_, err = b.tgAPI.Send(msg)
 	return err
 }
 
 //EditDeadline modifies standup time
 func (b *Bot) EditDeadline(event tgbotapi.Update) error {
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Changing stanup time...")
-	_, err := b.tgAPI.Send(msg)
+	deadline := event.Message.CommandArguments()
+
+	group, err := b.db.FindGroup(event.Message.Chat.ID)
+	if err != nil {
+		//! Need to create the group here... this might happen
+		//! if the bot was added to the group when being inactive
+	}
+
+	group.StandupDeadline = deadline
+
+	_, err = b.db.UpdateGroup(group)
+	if err != nil {
+		log.Error("UpdateGroup in EditDeadline failed: ", err)
+		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Could not update deadline")
+		msg.ReplyToMessageID = event.Message.MessageID
+		_, err = b.tgAPI.Send(msg)
+		return err
+	}
+
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Deadline updated! New deadline is %s", deadline))
+	msg.ReplyToMessageID = event.Message.MessageID
+	_, err = b.tgAPI.Send(msg)
 	return err
 }
 
 //ShowDeadline shows current standup time
 func (b *Bot) ShowDeadline(event tgbotapi.Update) error {
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Showing standup time...")
-	_, err := b.tgAPI.Send(msg)
+	group, err := b.db.FindGroup(event.Message.Chat.ID)
+	if err != nil {
+		//! Need to create the group here... this might happen
+		//! if the bot was added to the group when being inactive
+	}
+
+	var msg tgbotapi.MessageConfig
+
+	if group.StandupDeadline == "" {
+		msg = tgbotapi.NewMessage(event.Message.Chat.ID, "No deadlines for standup submittions in the team yet!")
+	} else {
+		msg = tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Deadline is %s each day exept weekends!", group.StandupDeadline))
+	}
+
+	msg.ReplyToMessageID = event.Message.MessageID
+	_, err = b.tgAPI.Send(msg)
 	return err
 }
 
 //RemoveDeadline sets standup deadline to empty string
 func (b *Bot) RemoveDeadline(event tgbotapi.Update) error {
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Removing standup time...")
-	_, err := b.tgAPI.Send(msg)
+	group, err := b.db.FindGroup(event.Message.Chat.ID)
+	if err != nil {
+		//! Need to create the group here... this might happen
+		//! if the bot was added to the group when being inactive
+	}
+
+	group.StandupDeadline = ""
+
+	_, err = b.db.UpdateGroup(group)
+	if err != nil {
+		log.Error("UpdateGroup in RemoveDeadline failed: ", err)
+		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Could not remove deadline")
+		msg.ReplyToMessageID = event.Message.MessageID
+		_, err = b.tgAPI.Send(msg)
+		return err
+	}
+
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Deadline removed!")
+	msg.ReplyToMessageID = event.Message.MessageID
+	_, err = b.tgAPI.Send(msg)
 	return err
 }
