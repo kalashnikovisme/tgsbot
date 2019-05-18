@@ -15,9 +15,9 @@ services:
       - DATABASE_URL=tgbot:tgbot@tcp(db:3306)/tgbot?parseTime=true
     depends_on:
       - db
-    working_dir: /go/src/github.com/maddevsio/telegramStandupBot
+    working_dir: /go/src/github.com/maddevsio/tgsbot
     volumes:
-      - ./:/go/src/github.com/maddevsio/telegramStandupBot
+      - ./:/go/src/github.com/maddevsio/tgsbot
     command: bash -c "./goose -dir migrations mysql 'tgbot:tgbot@tcp(db:3306)/tgbot' up && go test -v -timeout 30s ./... "
     depends_on:
       db:

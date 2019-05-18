@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/maddevsio/telegramStandupBot/model"
+	"github.com/maddevsio/tgsbot/model"
 	log "github.com/sirupsen/logrus"
 )
 

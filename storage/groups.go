@@ -3,7 +3,7 @@ package storage
 import (
 	// This line is must for working MySQL database
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/maddevsio/telegramStandupBot/model"
+	"github.com/maddevsio/tgsbot/model"
 )
 
 // CreateGroup creates Group

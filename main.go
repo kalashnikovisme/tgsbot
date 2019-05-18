@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/maddevsio/telegramStandupBot/bot"
-	"github.com/maddevsio/telegramStandupBot/config"
+	"github.com/maddevsio/tgsbot/bot"
+	"github.com/maddevsio/tgsbot/config"
 	log "github.com/sirupsen/logrus"
 )
 

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maddevsio/telegramStandupBot/model"
+	"github.com/maddevsio/tgsbot/model"
 )
 
 func isStandup(message string) bool {

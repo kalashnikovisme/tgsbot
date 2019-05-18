@@ -6,7 +6,7 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
-	"github.com/maddevsio/telegramStandupBot/model"
+	"github.com/maddevsio/tgsbot/model"
 )
 
 func (b *Bot) handleUpdate(update tgbotapi.Update) error {
