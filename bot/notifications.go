@@ -2,6 +2,7 @@ package bot
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -62,14 +63,18 @@ func (b *Bot) NotifyGroups(t time.Time) {
 			continue
 		}
 
+		missed := []string{}
+
 		for _, standuper := range standupers {
 			if !b.submittedStandupToday(standuper) {
-				msg := tgbotapi.NewMessage(standuper.ChatID, fmt.Sprintf("@%v, you have missed deadline, please, submit standup ASAP!", standuper.Username))
-				_, err = b.tgAPI.Send(msg)
-				if err != nil {
-					log.Error(err)
-				}
+				missed = append(missed, "@"+standuper.Username)
 			}
+		}
+
+		msg := tgbotapi.NewMessage(group.ChatID, fmt.Sprintf("@%v, you have missed deadline, please, submit standup ASAP!", strings.Join(missed, ", ")))
+		_, err = b.tgAPI.Send(msg)
+		if err != nil {
+			log.Error(err)
 		}
 	}
 }

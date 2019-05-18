@@ -19,9 +19,9 @@ type Bot struct {
 	db      *storage.MySQL
 }
 
-var yesterdayWorkKeywords = []string{"вчера"}
-var todayPlansKeywords = []string{"сегодня"}
-var issuesKeywords = []string{"мешает"}
+var yesterdayWorkKeywords = []string{"yesterday"}
+var todayPlansKeywords = []string{"today"}
+var issuesKeywords = []string{"block"}
 
 // New creates a new bot instance
 func New(c *config.BotConfig) (*Bot, error) {

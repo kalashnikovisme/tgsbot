@@ -65,7 +65,7 @@ func (b *Bot) HandleMessageEvent(event tgbotapi.Update) error {
 		return err
 	}
 
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Спасибо, стендап принят!")
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Thanks, standup accepted!")
 	msg.ReplyToMessageID = event.Message.MessageID
 	_, err = b.tgAPI.Send(msg)
 	return err
