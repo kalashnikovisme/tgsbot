@@ -1,8 +1,11 @@
 package bot
 
 import (
+	"sync"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/maddevsio/telegramStandupBot/config"
+	"github.com/maddevsio/telegramStandupBot/model"
 	"github.com/maddevsio/telegramStandupBot/storage"
 	log "github.com/sirupsen/logrus"
 )
@@ -13,10 +16,13 @@ const (
 
 // Bot structure
 type Bot struct {
-	c       *config.BotConfig
-	tgAPI   *tgbotapi.BotAPI
-	updates tgbotapi.UpdatesChannel
-	db      *storage.MySQL
+	c            *config.BotConfig
+	tgAPI        *tgbotapi.BotAPI
+	updates      tgbotapi.UpdatesChannel
+	db           *storage.MySQL
+	watchersChan chan *model.Group
+	teams        []*model.Team
+	wg           sync.WaitGroup
 }
 
 var yesterdayWorkKeywords = []string{"yesterday"}
@@ -46,19 +52,35 @@ func New(c *config.BotConfig) (*Bot, error) {
 		return nil, err
 	}
 
+	wch := make(chan *model.Group)
+	var teams []*model.Team
+
 	b := &Bot{
-		c:       c,
-		tgAPI:   newBot,
-		updates: updates,
-		db:      conn,
+		c:            c,
+		tgAPI:        newBot,
+		updates:      updates,
+		db:           conn,
+		watchersChan: wch,
+		teams:        teams,
 	}
 
 	return b, nil
 }
 
 // Start bot
-func (b *Bot) Start() {
-	b.StartNotificationThreads()
+func (b *Bot) Start() error {
+	b.wg.Add(1)
+	go b.StartWatchers()
+
+	groups, err := b.db.ListGroups()
+	if err != nil {
+		return err
+	}
+
+	for _, g := range groups {
+		b.watchersChan <- g
+	}
+
 	log.Info("Listening for updates... \n")
 	for update := range b.updates {
 		err := b.handleUpdate(update)
@@ -66,4 +88,15 @@ func (b *Bot) Start() {
 			log.Error(err)
 		}
 	}
+
+	return nil
+}
+
+func (b *Bot) findTeam(chatID int64) *model.Team {
+	for _, team := range b.teams {
+		if team.Group.ChatID == chatID {
+			return team
+		}
+	}
+	return nil
 }

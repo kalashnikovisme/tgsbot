@@ -11,6 +11,16 @@ type Group struct {
 	StandupDeadline string `db:"standup_deadline" json:"standup_deadline,omitempty"`
 }
 
+//Team is a helper struct to watch after different channels deadlines
+type Team struct {
+	Group    *Group
+	QuitChan chan struct{}
+}
+
+func (t *Team) Stop() {
+	close(t.QuitChan)
+}
+
 // Standuper rerpesents standuper
 type Standuper struct {
 	ID           int64  `db:"id" json:"id"`
