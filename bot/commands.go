@@ -1,6 +1,11 @@
 package bot
 
-import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+import (
+	"fmt"
+	"strings"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+)
 
 //HandleCommand handles imcomming commands
 func (b *Bot) HandleCommand(event tgbotapi.Update) error {
@@ -35,6 +40,7 @@ func (b *Bot) Help(event tgbotapi.Update) error {
 
 //Add assign user a standuper role
 func (b *Bot) Add(event tgbotapi.Update) error {
+
 	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Adding...")
 	_, err := b.tgAPI.Send(msg)
 	return err
@@ -42,8 +48,24 @@ func (b *Bot) Add(event tgbotapi.Update) error {
 
 //Show standupers
 func (b *Bot) Show(event tgbotapi.Update) error {
-	msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Showing...")
-	_, err := b.tgAPI.Send(msg)
+	standupers, err := b.db.ListChatStandupers(event.Message.Chat.ID)
+	if err != nil {
+		return err
+	}
+
+	if len(standupers) == 0 {
+		msg := tgbotapi.NewMessage(event.Message.Chat.ID, "Currently no standupser in the group. To add, please use `/add` command")
+		_, err := b.tgAPI.Send(msg)
+		return err
+	}
+
+	list := []string{}
+	for _, standuper := range standupers {
+		list = append(list, "@"+standuper.Username)
+	}
+
+	msg := tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Standupers in the group: ", strings.Join(list, ", ")))
+	_, err = b.tgAPI.Send(msg)
 	return err
 }
 
