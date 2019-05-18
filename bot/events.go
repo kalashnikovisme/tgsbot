@@ -12,6 +12,13 @@ import (
 
 func (b *Bot) handleUpdate(update tgbotapi.Update) {
 
+	if update.Message.IsCommand() {
+		err := b.HandleCommand(update)
+		if err != nil {
+			log.Error("Failed to Handle Command ", err)
+		}
+	}
+
 	if update.Message.Text != "" {
 		err := b.HandleMessageEvent(update)
 		if err != nil {
