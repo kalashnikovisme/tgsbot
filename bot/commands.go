@@ -76,8 +76,15 @@ func (b *Bot) JoinStandupers(event tgbotapi.Update) error {
 
 	group, err := b.db.FindGroup(event.Message.Chat.ID)
 	if err != nil {
-		//! Need to create the group here... this might happen
-		//! if the bot was added to the group when being inactive
+		group, err = b.db.CreateGroup(&model.Group{
+			ChatID:          event.Message.Chat.ID,
+			Title:           event.Message.Chat.Title,
+			Description:     event.Message.Chat.Description,
+			StandupDeadline: "10:00",
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	var msg tgbotapi.MessageConfig
@@ -147,8 +154,17 @@ func (b *Bot) EditDeadline(event tgbotapi.Update) error {
 
 	team := b.findTeam(event.Message.Chat.ID)
 	if team == nil {
-		//! Need to create the group here... this might happen
-		//! if the bot was added to the group when being inactive
+		group, err := b.db.CreateGroup(&model.Group{
+			ChatID:          event.Message.Chat.ID,
+			Title:           event.Message.Chat.Title,
+			Description:     event.Message.Chat.Description,
+			StandupDeadline: "10:00",
+		})
+		if err != nil {
+			return err
+		}
+		b.watchersChan <- group
+		team = b.findTeam(event.Message.Chat.ID)
 	}
 
 	team.Group.StandupDeadline = deadline
@@ -172,8 +188,15 @@ func (b *Bot) EditDeadline(event tgbotapi.Update) error {
 func (b *Bot) ShowDeadline(event tgbotapi.Update) error {
 	group, err := b.db.FindGroup(event.Message.Chat.ID)
 	if err != nil {
-		//! Need to create the group here... this might happen
-		//! if the bot was added to the group when being inactive
+		group, err = b.db.CreateGroup(&model.Group{
+			ChatID:          event.Message.Chat.ID,
+			Title:           event.Message.Chat.Title,
+			Description:     event.Message.Chat.Description,
+			StandupDeadline: "10:00",
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	var msg tgbotapi.MessageConfig
@@ -193,8 +216,17 @@ func (b *Bot) ShowDeadline(event tgbotapi.Update) error {
 func (b *Bot) RemoveDeadline(event tgbotapi.Update) error {
 	team := b.findTeam(event.Message.Chat.ID)
 	if team == nil {
-		//! Need to create the group here... this might happen
-		//! if the bot was added to the group when being inactive
+		group, err := b.db.CreateGroup(&model.Group{
+			ChatID:          event.Message.Chat.ID,
+			Title:           event.Message.Chat.Title,
+			Description:     event.Message.Chat.Description,
+			StandupDeadline: "10:00",
+		})
+		if err != nil {
+			return err
+		}
+		b.watchersChan <- group
+		team = b.findTeam(event.Message.Chat.ID)
 	}
 
 	team.Group.StandupDeadline = ""

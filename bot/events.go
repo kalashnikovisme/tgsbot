@@ -100,7 +100,7 @@ func (b *Bot) HandleChannelJoinEvent(event tgbotapi.Update) error {
 		// if user is a bot
 		if member.UserName == b.tgAPI.Self.UserName {
 			// add group to DB with default standup time to 10:00
-			_, err := b.db.CreateGroup(&model.Group{
+			group, err := b.db.CreateGroup(&model.Group{
 				ChatID:          event.Message.Chat.ID,
 				Title:           event.Message.Chat.Title,
 				Description:     event.Message.Chat.Description,
@@ -109,6 +109,9 @@ func (b *Bot) HandleChannelJoinEvent(event tgbotapi.Update) error {
 			if err != nil {
 				return err
 			}
+
+			b.watchersChan <- group
+
 			// Send greeting message after success group save
 			text := "Hello! Nice to meet you all! I am here to help you with standups :}"
 			_, err = b.tgAPI.Send(tgbotapi.NewMessage(event.Message.Chat.ID, text))
