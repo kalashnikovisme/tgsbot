@@ -1,6 +1,6 @@
 # Simple Standup Bot for Telegram #
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/maddevsio/tgsbot](https://goreportcard.com/report/github.com/maddevsio/tgsbot)
+[![Go Report Card](https://goreportcard.com/badge/github.com/maddevsio/tgsbot)](https://goreportcard.com/report/github.com/maddevsio/tgsbot)
 
 Bot helps to conduct asynchronous daily standup meetings 
 
