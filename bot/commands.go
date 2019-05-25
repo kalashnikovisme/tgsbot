@@ -97,7 +97,7 @@ func (b *Bot) JoinStandupers(event tgbotapi.Update) error {
 	if group.StandupDeadline == "" {
 		msg = tgbotapi.NewMessage(event.Message.Chat.ID, "Welcome to standup team! No deadlines for standup submittions in the team yet!")
 	} else {
-		msg = tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Welcome to standup team! Please submit your standups till %s each day exept weekends!", group.StandupDeadline))
+		msg = tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Welcome to standup team! Please submit your standups till %s each day except weekends!", group.StandupDeadline))
 	}
 
 	msg.ReplyToMessageID = event.Message.MessageID
@@ -211,7 +211,7 @@ func (b *Bot) ShowDeadline(event tgbotapi.Update) error {
 	if group.StandupDeadline == "" {
 		msg = tgbotapi.NewMessage(event.Message.Chat.ID, "No deadlines for standup submittions in the team yet!")
 	} else {
-		msg = tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Deadline is %s each day exept weekends!", group.StandupDeadline))
+		msg = tgbotapi.NewMessage(event.Message.Chat.ID, fmt.Sprintf("Deadline is %s each day except weekends!", group.StandupDeadline))
 	}
 
 	msg.ReplyToMessageID = event.Message.MessageID

@@ -18,6 +18,8 @@ type Team struct {
 	QuitChan chan struct{}
 }
 
+//Stop stops the team thread so that
+//the master bot would stop monitoring the channel
 func (t *Team) Stop() {
 	close(t.QuitChan)
 }
