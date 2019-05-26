@@ -13,6 +13,7 @@ Bot helps to conduct asynchronous daily standup meetings
 /edit_deadline - Sets new standup deadline (you can use 10am format or 15:30 format)
 /show_deadline - Shows current standup deadline
 /remove_deadline - Removes standup deadline at all
+/tz - Changes time zone of the group.
 ```
 
 ## Local usage
