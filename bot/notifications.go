@@ -82,7 +82,13 @@ func (b *Bot) NotifyGroup(group *model.Group, t time.Time) {
 		missed := []string{}
 
 		for _, standuper := range standupers {
-			if !b.submittedStandupToday(standuper) {
+			standup, err := b.db.LastStandupFor(standuper.Username, standuper.ChatID)
+			if err != nil {
+				log.Errorf("LastStandupFor failed [%v] [%v]", standuper, err)
+				missed = append(missed, "@"+standuper.Username)
+				continue
+			}
+			if standup.Created.Day() != time.Now().Day() {
 				missed = append(missed, "@"+standuper.Username)
 			}
 		}
