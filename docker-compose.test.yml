@@ -11,8 +11,6 @@ services:
       - db:db
     networks:
       - integration-tests
-    depends_on:
-      - db
     environment:
       - DATABASE_URL=tgbot:tgbot@tcp(db:3306)/tgbot?parseTime=true
     working_dir: /go/src/github.com/maddevsio/tgsbot
