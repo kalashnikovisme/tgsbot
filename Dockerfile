@@ -1,6 +1,7 @@
 FROM golang:1.11.4
 COPY . /go/src/github.com/maddevsio/tgsbot/
 WORKDIR /go/src/github.com/maddevsio/tgsbot
+RUN make install_dependencies
 RUN GOOS=linux GOARCH=amd64 go build -o tgsbot main.go
 
 FROM debian:9.8
